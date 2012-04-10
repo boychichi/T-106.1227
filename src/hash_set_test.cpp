@@ -4,9 +4,11 @@
 #include <fstream>
 #include <string>
 
-
 using namespace std;
 using namespace __gnu_cxx;
+
+const unsigned int MIN_BUCKET_SIZE = 3000000;
+const unsigned int TOT_NUM_ELE_TO_SEARCH = 10000;
 
 struct eqstr
 {
@@ -16,35 +18,36 @@ struct eqstr
   }
 };
 
-void lookup(const hash_set<const char*, hash<const char*>, eqstr>& Set,
+bool lookup(const hash_set<const char*, hash<const char*>, eqstr>& Set,
             const char* word)
 {
   hash_set<const char*, hash<const char*>, eqstr>::const_iterator it
     = Set.find(word);
-  cout << word << ": "
+  /*cout << word << ": "
        << (it != Set.end() ? "present" : "not present")
-       << endl;
+       << endl;*/
+  return (it != Set.end() ? true : false);
 }
 	
 int main(void)
 {
   std::ifstream myfile("worldcities.txt");
   std::string data = "aixirivali";
-  hash_set<const char*, hash<const char*>, eqstr> Set(10000);
+  hash_set<const char*, hash<const char*>, eqstr> Set(MIN_BUCKET_SIZE);
 
   int i = 0;
   int count = 0;
   char * cstr;
   char ** lookup_test;
    
-  lookup_test = new char* [100];
+  lookup_test = new char* [TOT_NUM_ELE_TO_SEARCH];
 
   while(!myfile.eof()) 
   {
 	getline(myfile, data);
 	cstr = new char [data.size()+1];
 
-	if( i % 1000 == 0 && count < 100 )
+	if( i % 100 == 0 && count < TOT_NUM_ELE_TO_SEARCH )
 	{
 		
 		lookup_test[count] = new char [data.size()+1];
@@ -59,24 +62,18 @@ int main(void)
   cout<<"Hash bucket size: "<<Set.bucket_count()<<endl;
   cout<<"Hash set size: "<<Set.size()<<endl;
   cout<<"Hash max size: "<<Set.max_size()<<endl;
-  /*
-  for( hash_set<const char*, hash<const char*>, eqstr>::const_iterator it = Set.begin(); it != Set.end(); it++)
-	{
-		if( Set.count(*it) > 1) cout<<"Total elements which have the same hash as " <<*it<<": "<<Set.count(*it)<<endl;
-	}
-  */
   
   // look up exisiting records
-  for( int j = 0; j < 100; j++ )
-	 lookup(Set, lookup_test[j]);
+  for( int j = 0; j < TOT_NUM_ELE_TO_SEARCH; j++ )
+	 assert(lookup(Set, lookup_test[j]));
   
   // delete exisiting records
-  for( int j = 0; j < 100; j++ )
+  for( int j = 0; j < TOT_NUM_ELE_TO_SEARCH; j++ )
 	 Set.erase(lookup_test[j]);
   
   // look up non-exisiting records
-  for( int j = 0; j < 100; j++ )
-	 lookup(Set, lookup_test[j]);
+  for( int j = 0; j < TOT_NUM_ELE_TO_SEARCH; j++ )
+	 assert(!lookup(Set, lookup_test[j]));
 	 
 
   return 0;
